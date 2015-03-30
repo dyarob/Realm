@@ -1,47 +1,74 @@
 #include <SDL2/SDL.h>
 #include <stdio.h>
 
+#define pr_sdl_err(msg)		fprintf(stderr, msg ": %s\n", SDL_GetError())
+
+#define ERR_SDL_INIT		1	/* SDL_Init() */
+#define ERR_IMG_INIT		2	/* IMG_Init() */
+#define ERR_SDL_CW			3	/* SDL_CreateWindow() */
+#define ERR_SDL_CR			4	/* SDL_CreateRenderer() */
+#define ERR_IMG_LOAD		5	/* IMG_Load() */
+#define ERR_SDL_CTFS		6	/* SDL_CreateTextureFromSurface() */
+
 int main() {
-	if (SDL_Init(SDL_INIT_EVERYTHING) != 0) {
-		printf("SDL_Init Error: %s\n", SDL_GetError());
-		return 1;
-	}
+	int		ret = 0;
+	SDL_Window		*win;
+	SDL_Renderer	*ren;
+	SDL_Surface		*bmp;
+	SDL_Texture		*tex;
 
-	SDL_Window *win = SDL_CreateWindow("Hello World!", 100, 100, 960, 540, SDL_WINDOW_SHOWN);
+	ret = SDL_Init(SDL_INIT_EVERYTHING);
+	if (ret != 0) {
+		pr_sdl_err("Unable to initialize SDL");
+		ret = -ERR_SDL_INIT;
+		goto exit_init;
+	}
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_SHOWN);
 	if (win == nullptr) {
-		printf("SDL_CreateWindow Error: %s\n", SDL_GetError());
-		return 1;
+		pr_sdl_err("Could not create window");
+		ret = -ERR_SDL_CW;
+		goto exit_win;
 	}
-
-	SDL_Renderer *ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
+	ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (ren == nullptr) {
-		printf("SDL_CreateRenderer Error: %s\n", SDL_GetError());
-		return 1;
+		fprintf(stderr, "Unable to create renderer\n");
+		ret = -ERR_SDL_CR;
+		goto exit_ren;
 	}
-
-	SDL_Surface *bmp = SDL_LoadBMP("img/boxes.bmp");
+	bmp = SDL_LoadBMP("./img/boxes.bmp");
 	if (bmp == nullptr) {
-		printf("SDL_LoadBMP Error: %s\n", SDL_GetError());
-		return 1;
+		pr_sdl_err("Unable to load BMP");
+		ret = -ERR_IMG_LOAD;
+		goto exit_bmp;
 	}
-
-	SDL_Texture *tex = SDL_CreateTextureFromSurface(ren, bmp);
+	tex = SDL_CreateTextureFromSurface(ren, bmp);
 	SDL_FreeSurface(bmp);
 	if (tex == nullptr) {
-		printf("SDL_CreateTextureFromSurface Error: %s\n", SDL_GetError());
-		return 1;
+		pr_sdl_err("Unable to create texture");
+		ret = -ERR_SDL_CTFS;
+		goto exit_tex;
 	}
 
-	SDL_RenderClear(ren);
-	SDL_RenderCopy(ren, tex, NULL, NULL);
-	SDL_RenderPresent(ren);
+	for (;;) {
+		SDL_Event e;
 
-	SDL_Delay(5000);
+		if (SDL_PollEvent(&e)) {
+			if (e.type == SDL_QUIT)
+				break;
+		}
+		SDL_RenderClear(ren);
+		SDL_RenderCopy(ren, tex, NULL, NULL);
+		SDL_RenderPresent(ren);
+	}
 
 	SDL_DestroyTexture(tex);
+exit_tex:
 	SDL_DestroyRenderer(ren);
+exit_bmp:
+exit_ren:
 	SDL_DestroyWindow(win);
+exit_win:
 	SDL_Quit();
-
-	return 0;
+exit_init:
+	return ret;
 }
