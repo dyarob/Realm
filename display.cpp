@@ -1,5 +1,9 @@
-#include <SDL2/SDL.h>
+//#include <SDL2/SDL.h>
+#include <SDL.h>
 #include <stdio.h>
+
+#define WIN_H	320
+#define WIN_W	640
 
 #define pr_sdl_err(msg)		fprintf(stderr, msg ": %s\n", SDL_GetError())
 
@@ -16,6 +20,7 @@ int main() {
 	SDL_Renderer	*ren;
 	SDL_Surface		*bmp;
 	SDL_Texture		*tex;
+	SDL_Rect	r = {0, 0, 32, 32};
 
 	ret = SDL_Init(SDL_INIT_EVERYTHING);
 	if (ret != 0) {
@@ -23,7 +28,7 @@ int main() {
 		ret = -ERR_SDL_INIT;
 		goto exit_init;
 	}
-	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 100, 100, SDL_WINDOW_SHOWN);
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 320, SDL_WINDOW_SHOWN);
 	if (win == nullptr) {
 		pr_sdl_err("Could not create window");
 		ret = -ERR_SDL_CW;
@@ -50,14 +55,16 @@ int main() {
 	}
 
 	for (;;) {
-		SDL_Event e;
-
+		SDL_Event	e;
 		if (SDL_PollEvent(&e)) {
 			if (e.type == SDL_QUIT)
 				break;
 		}
 		SDL_RenderClear(ren);
-		SDL_RenderCopy(ren, tex, NULL, NULL);
+		for (r.x = 0; r.x < WIN_W; r.x += r.w) {
+			for (r.y = 0; r.y < WIN_H; r.y += r.h)
+				SDL_RenderCopy(ren, tex, NULL, &r);
+		}
 		SDL_RenderPresent(ren);
 	}
 
