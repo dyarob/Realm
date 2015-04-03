@@ -1,16 +1,20 @@
-CXX?=g++
+CXX?=	g++
 CXXFLAGS?=$(shell pkg-config sdl2 --libs --cflags) -std=c++11
+SRC =	\
+		display.cpp \
+		#comp.draw.cpp \
+
 
 all:
-	${CXX} -O3 display.cpp ${CXXFLAGS} -o main
+	${CXX} -O3 $(SRC) ${CXXFLAGS} -o main
 
 small:
-	${CXX} -Os display.cpp ${CXXFLAGS} -o main
+	${CXX} -Os $(SRC) ${CXXFLAGS} -o main
 	strip main
 	sstrip main
 
 debug:
-	${CXX} -O0 -g display.cpp ${CXXFLAGS} -o main
+	${CXX} -O0 -g $(SRC) ${CXXFLAGS} -o main
 
 run:
 	@echo --- C++11 ---
