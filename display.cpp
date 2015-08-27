@@ -70,7 +70,7 @@ int main() {
 	}
 	ren = SDL_CreateRenderer(win, -1, SDL_RENDERER_ACCELERATED | SDL_RENDERER_PRESENTVSYNC);
 	if (ren == nullptr) {
-		fprintf(stderr, "Unable to create renderer\n");
+		pr_sdl_err("Unable to create renderer");
 		ret = -ERR_SDL_CR;
 		goto exit_ren;
 	}

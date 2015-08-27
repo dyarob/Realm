@@ -1,0 +1,10 @@
+[package]
+name = "TheCouch"
+version = "0.0.1"
+authors = ["dr <dyarob@gmail.com>"]
+
+[[bin]]
+name = "TheCouch"
+
+[dependencies]
+sdl2 = "0.2.3"
