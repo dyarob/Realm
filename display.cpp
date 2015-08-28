@@ -13,7 +13,7 @@
 
 #define	WIN_H_SPRITS	10
 #define	WIN_W_SPRITS	20
-#define SPRITS_NUM		WIN_H_SPRITS * WIN_W_SPRITS
+#define SPRITES_NUMBER	WIN_H_SPRITS * WIN_W_SPRITS
 #define SPRIT_H	32
 #define SPRIT_W	32
 #define WIN_H	320
@@ -44,10 +44,10 @@ int main() {
 	SDL_Window		*win;
 	SDL_Renderer	*ren;
 	SDL_Surface		*bmp;
-	SDL_Texture		*tex;
+	SDL_Texture		*tex[SPRITES_NUMBER];
 	SDL_Rect	r = {0, 0, 32, 32};
-	int			ents[SPRITS_NUM];
-	for (int i = 0; i < SPRITS_NUM; ++i) {
+	int			ents[SPRITES_NUMBER];
+	for (int i = 0; i < SPRITES_NUMBER; ++i) {
 		ents[i] = i;
 		Comp::x[i] = i % WIN_W_SPRITS * SPRIT_W;
 		Comp::y[i] = i / WIN_W_SPRITS * SPRIT_H;
@@ -74,18 +74,21 @@ int main() {
 		ret = -ERR_SDL_CR;
 		goto exit_ren;
 	}
-	bmp = SDL_LoadBMP("./img/boxes.bmp");
-	if (bmp == nullptr) {
-		pr_sdl_err("Unable to load BMP");
-		ret = -ERR_IMG_LOAD;
-		goto exit_bmp;
-	}
-	tex = SDL_CreateTextureFromSurface(ren, bmp);
-	SDL_FreeSurface(bmp);
-	if (tex == nullptr) {
-		pr_sdl_err("Unable to create texture");
-		ret = -ERR_SDL_CTFS;
-		goto exit_tex;
+	for (int i = 0; i<SPRITES_NUMBER; ++i) {
+		bmp = SDL_LoadBMP("./img/boxes.bmp");
+		if (bmp == nullptr) {
+			pr_sdl_err("Unable to load BMP");
+			ret = -ERR_IMG_LOAD;
+			goto exit_bmp;
+		}
+		tex[i] = SDL_CreateTextureFromSurface(ren, bmp);
+		SDL_FreeSurface(bmp);
+		if (tex[i] == nullptr) {
+			pr_sdl_err("Unable to create texture");
+			ret = -ERR_SDL_CTFS;
+			goto exit_tex;
+		}
+		bmp = nullptr;
 	}
 
 	for (;;) {
