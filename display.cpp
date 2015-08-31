@@ -2,22 +2,23 @@
 #include <SDL.h>
 #include <stdio.h>
 
-#define pr_sdl_err(msg)		fprintf(stderr, msg ": %s\n", SDL_GetError())
-
 #define ERR_SDL_INIT		1	/* SDL_Init() */
 #define ERR_IMG_INIT		2	/* IMG_Init() */
 #define ERR_SDL_CW			3	/* SDL_CreateWindow() */
 #define ERR_SDL_CR			4	/* SDL_CreateRenderer() */
 #define ERR_IMG_LOAD		5	/* IMG_Load() */
 #define ERR_SDL_CTFS		6	/* SDL_CreateTextureFromSurface() */
+#define pr_sdl_err(msg)		fprintf(stderr, msg ": %s\n", SDL_GetError())
 
-#define	WIN_H_SPRITS	10
-#define	WIN_W_SPRITS	20
-#define SPRITES_NUMBER	WIN_H_SPRITS * WIN_W_SPRITS
-#define SPRIT_H	32
-#define SPRIT_W	32
 #define WIN_H	320
 #define WIN_W	640
+#define	TILES_HIGH	10
+#define	TILES_WIDE	20
+#define TILES_TOTAL	TILES_HIGH * TILES_WIDE
+
+#define SPRITE_H	32
+#define SPRITE_W	32
+#define SPRITES_NUMBER	3
 
 #include <map>
 #include <string>
@@ -49,8 +50,8 @@ int main() {
 	int			ents[SPRITES_NUMBER];
 	for (int i = 0; i < SPRITES_NUMBER; ++i) {
 		ents[i] = i;
-		Comp::x[i] = i % WIN_W_SPRITS * SPRIT_W;
-		Comp::y[i] = i / WIN_W_SPRITS * SPRIT_H;
+		Comp::x[i] = i % TILES_WIDE * SPRITE_W;
+		Comp::y[i] = i / TILES_WIDE * SPRITE_H;
 	}
 	Cap::Drawable[1] = true;
 	Cap::Drawable[2] = true;
