@@ -10,18 +10,22 @@
 #define ERR_SDL_CTFS		6	/* SDL_CreateTextureFromSurface() */
 #define pr_sdl_err(msg)		fprintf(stderr, msg ": %s\n", SDL_GetError())
 
-#define WIN_H	320
-#define WIN_W	640
+#define SPRITE_H	16
+#define SPRITE_W	16
+#define SPRITES_NUMBER	3
+
+#define WIN_H	SPRITE_H * TILES_HIGH
+#define WIN_W	SPRITE_W * TILES_WIDE
 #define	TILES_HIGH	10
 #define	TILES_WIDE	20
 #define TILES_TOTAL	TILES_HIGH * TILES_WIDE
 
-#define SPRITE_H	32
-#define SPRITE_W	32
-#define SPRITES_NUMBER	3
-
-#include <map>
 #include <string>
+#include <sstream>
+#include <vector>
+#include <map>
+#include <dirent.h>
+#include <iostream>
 
 enum	Dir { TOP, RIGHT, BOTTOM, LEFT };
 
@@ -41,21 +45,25 @@ namespace Comp {
 }
 
 int main() {
-	int			ret = 0;
+	int				ret = 0;
 	SDL_Window		*win;
 	SDL_Renderer	*ren;
 	SDL_Surface		*bmp;
 	SDL_Texture		*tex[SPRITES_NUMBER];
-	SDL_Rect	r = {0, 0, 32, 32};
-	int			ents[SPRITES_NUMBER];
-	for (int i = 0; i < SPRITES_NUMBER; ++i) {
+	SDL_Rect		r = {0, 0, 32, 32};
+	int				ents[TILES_TOTAL];
+	DIR				*dir;
+	struct dirent	*dirent;
+	std::stringstream	ss;
+
+	// init floor tiles in ents table
+	for (int i = 0; i < TILES_TOTAL; ++i) {
 		ents[i] = i;
-		Comp::x[i] = i % TILES_WIDE * SPRITE_W;
-		Comp::y[i] = i / TILES_WIDE * SPRITE_H;
+		Comp::x[i] = i % TILES_WIDE * 32;
+		Comp::y[i] = i / TILES_WIDE * 32;
+		Cap::Walkable[i] = true;
+		Cap::Drawable[i] = true;
 	}
-	Cap::Drawable[1] = true;
-	Cap::Drawable[2] = true;
-	Cap::Drawable[23] = true;
 
 	ret = SDL_Init(SDL_INIT_EVERYTHING);
 	if (ret != 0) {
@@ -75,13 +83,28 @@ int main() {
 		ret = -ERR_SDL_CR;
 		goto exit_ren;
 	}
+
+	// TEXTURE LOADING
+	if (!(dir = opendir("img"))) {
+		std::cerr << "opening img folder failed.";
+		goto exit_dir;
+	}
 	for (int i = 0; i<SPRITES_NUMBER; ++i) {
-		bmp = SDL_LoadBMP("./img/boxes.bmp");
+		while (dirent = readdir(dir)) {
+			if (!strncmp(dirent->d_name, "sprite_", 7))
+				break;
+		}
+		if (!dirent)
+			break;
+		ss << "img/" << dirent->d_name;
+		bmp = SDL_LoadBMP(ss.str().c_str());
 		if (bmp == nullptr) {
 			pr_sdl_err("Unable to load BMP");
 			ret = -ERR_IMG_LOAD;
 			goto exit_bmp;
 		}
+		ss.str(std::string());
+		ss.clear();
 		tex[i] = SDL_CreateTextureFromSurface(ren, bmp);
 		SDL_FreeSurface(bmp);
 		if (tex[i] == nullptr) {
@@ -90,8 +113,9 @@ int main() {
 			goto exit_tex;
 		}
 		bmp = nullptr;
-	}
+	} // ! TEXTURE LOADING
 
+	// MAIN LOOP
 	for (;;) {
 		SDL_Event	e;
 		if (SDL_PollEvent(&e)) {
@@ -103,16 +127,18 @@ int main() {
 			if (Cap::Drawable[ent]) {
 				r.x = Comp::x[ent];
 				r.y = Comp::y[ent];
-				SDL_RenderCopy(ren, tex, NULL, &r);
+				SDL_RenderCopy(ren, tex[2], NULL, &r);
 			}
 		}
 		SDL_RenderPresent(ren);
-	}
+	} // ! MAIN LOOP
 
-	SDL_DestroyTexture(tex);
+	for (int i = 0; i<SPRITES_NUMBER; ++i)
+		SDL_DestroyTexture(tex[i]);
 exit_tex:
-	SDL_DestroyRenderer(ren);
 exit_bmp:
+exit_dir:
+	SDL_DestroyRenderer(ren);
 exit_ren:
 	SDL_DestroyWindow(win);
 exit_win:
