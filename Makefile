@@ -1,6 +1,7 @@
 CXX?=	g++
 CXXFLAGS?=$(shell pkg-config sdl2 --libs --cflags) -std=c++11
 SRC =	\
+		rendering.cpp \
 		mechanics_init.cpp \
 		Mechanics.cpp \
 		display.cpp \
