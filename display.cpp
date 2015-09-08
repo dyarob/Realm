@@ -7,9 +7,8 @@
 #include <map>
 #include <dirent.h>
 #include <iostream>
-#include "main.h"
 #include "defines.h"
-#include "Caomps.h"
+#include "mechanics_init.h"
 
 int main() {
 	int				ret = 0;
@@ -21,14 +20,6 @@ int main() {
 	DIR				*dir;
 	struct dirent	*dirent;
 	std::stringstream	ss;
-
-	// init floor tiles in ents table
-	for (int i = 0; i < TILES_TOTAL; ++i) {
-		Comp::x[i] = i % TILES_WIDE * 32;
-		Comp::y[i] = i / TILES_WIDE * 32;
-		//Cap::Walkable[i] = true;
-		//Cap::Drawable[i] = true;
-	}
 
 	ret = SDL_Init(SDL_INIT_EVERYTHING);
 	if (ret != 0) {
@@ -78,15 +69,17 @@ int main() {
 			goto exit_tex;
 		}
 		bmp = nullptr;
-	} // !texture loading
+	}
 
-	// MAIN LOOP
-	mainloop(ren, tex, r);
+	// STEP 1 Graphics init. COMPLETE
+	// TO STEP 2: Mechanics init.
+	// (Capacities & Components)
+	mechanics_init(ren, tex, r);
 
+	// Game has been terminated.
 	// FREEING MEM FROM HERE
 	for (int i = 0; i<SPRITES_NUMBER; ++i)
 		SDL_DestroyTexture(tex[i]);
-
 exit_tex:
 exit_bmp:
 exit_dir:
