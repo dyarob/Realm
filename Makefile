@@ -1,12 +1,13 @@
 CXX?=	g++
 CXXFLAGS?=$(shell pkg-config sdl2 --libs --cflags) -std=c++11
 SRC =	\
+		Caomps.cpp \
 		display.cpp \
-		#comp.draw.cpp \
+		main.cpp \
 
-
+#${CXX}
 all:
-	${CXX} -O3 $(SRC) ${CXXFLAGS} -o main
+	clang++ -O3 $(SRC) ${CXXFLAGS} -o main
 
 small:
 	${CXX} -Os $(SRC) ${CXXFLAGS} -o main

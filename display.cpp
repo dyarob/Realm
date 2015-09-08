@@ -1,48 +1,15 @@
 //#include <SDL2/SDL.h>
 #include <SDL.h>
 #include <stdio.h>
-
-#define ERR_SDL_INIT		1	/* SDL_Init() */
-#define ERR_IMG_INIT		2	/* IMG_Init() */
-#define ERR_SDL_CW			3	/* SDL_CreateWindow() */
-#define ERR_SDL_CR			4	/* SDL_CreateRenderer() */
-#define ERR_IMG_LOAD		5	/* IMG_Load() */
-#define ERR_SDL_CTFS		6	/* SDL_CreateTextureFromSurface() */
-#define pr_sdl_err(msg)		fprintf(stderr, msg ": %s\n", SDL_GetError())
-
-#define SPRITE_H	16
-#define SPRITE_W	16
-#define SPRITES_NUMBER	3
-
-#define WIN_H	SPRITE_H * TILES_HIGH
-#define WIN_W	SPRITE_W * TILES_WIDE
-#define	TILES_HIGH	10
-#define	TILES_WIDE	20
-#define TILES_TOTAL	TILES_HIGH * TILES_WIDE
-
 #include <string>
 #include <sstream>
 #include <vector>
 #include <map>
 #include <dirent.h>
 #include <iostream>
-
-enum	Dir { TOP, RIGHT, BOTTOM, LEFT };
-
-namespace Cap {
-	std::map<int, bool>		Drawable;
-	std::map<int, bool>		Walkable;
-}
-
-namespace Comp {
-	std::map<int, int>			x;
-	std::map<int, int>			y;
-	std::map<int, int>			w;
-	std::map<int, int>			h;
-	std::map<int, std::string>	fname;
-	std::map<int, SDL_Texture*>	tex;
-	std::map<int, Dir>			dir;
-}
+#include "main.h"
+#include "defines.h"
+#include "Caomps.h"
 
 int main() {
 	int				ret = 0;
@@ -51,18 +18,16 @@ int main() {
 	SDL_Surface		*bmp;
 	SDL_Texture		*tex[SPRITES_NUMBER];
 	SDL_Rect		r = {0, 0, 32, 32};
-	int				ents[TILES_TOTAL];
 	DIR				*dir;
 	struct dirent	*dirent;
 	std::stringstream	ss;
 
 	// init floor tiles in ents table
 	for (int i = 0; i < TILES_TOTAL; ++i) {
-		ents[i] = i;
 		Comp::x[i] = i % TILES_WIDE * 32;
 		Comp::y[i] = i / TILES_WIDE * 32;
-		Cap::Walkable[i] = true;
-		Cap::Drawable[i] = true;
+		//Cap::Walkable[i] = true;
+		//Cap::Drawable[i] = true;
 	}
 
 	ret = SDL_Init(SDL_INIT_EVERYTHING);
@@ -71,7 +36,7 @@ int main() {
 		ret = -ERR_SDL_INIT;
 		goto exit_init;
 	}
-	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, 640, 320, SDL_WINDOW_SHOWN);
+	win = SDL_CreateWindow("Hello World!", SDL_WINDOWPOS_UNDEFINED, SDL_WINDOWPOS_UNDEFINED, WIN_W, WIN_H, SDL_WINDOW_SHOWN);
 	if (win == nullptr) {
 		pr_sdl_err("Could not create window");
 		ret = -ERR_SDL_CW;
@@ -90,7 +55,7 @@ int main() {
 		goto exit_dir;
 	}
 	for (int i = 0; i<SPRITES_NUMBER; ++i) {
-		while (dirent = readdir(dir)) {
+		while ((dirent = readdir(dir))) {
 			if (!strncmp(dirent->d_name, "sprite_", 7))
 				break;
 		}
@@ -113,28 +78,15 @@ int main() {
 			goto exit_tex;
 		}
 		bmp = nullptr;
-	} // ! TEXTURE LOADING
+	} // !texture loading
 
 	// MAIN LOOP
-	for (;;) {
-		SDL_Event	e;
-		if (SDL_PollEvent(&e)) {
-			if (e.type == SDL_QUIT)
-				break;
-		}
-		SDL_RenderClear(ren);
-		for (int &ent : ents) {
-			if (Cap::Drawable[ent]) {
-				r.x = Comp::x[ent];
-				r.y = Comp::y[ent];
-				SDL_RenderCopy(ren, tex[2], NULL, &r);
-			}
-		}
-		SDL_RenderPresent(ren);
-	} // ! MAIN LOOP
+	mainloop(ren, tex, r);
 
+	// FREEING MEM FROM HERE
 	for (int i = 0; i<SPRITES_NUMBER; ++i)
 		SDL_DestroyTexture(tex[i]);
+
 exit_tex:
 exit_bmp:
 exit_dir:
